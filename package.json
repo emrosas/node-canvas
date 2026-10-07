@@ -1,6 +1,6 @@
 {
   "name": "node-canvas",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Folders of Markdown notes rendered as a pannable canvas map. Agents read the notes, people read the canvas.",
   "type": "module",
   "license": "MIT",

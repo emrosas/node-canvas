@@ -70,6 +70,8 @@ Releasing: bump `version` in `package.json`, add a line to `CHANGELOG.md`, commi
 - `/` searches titles and note text. Enter opens the first match.
 - Click a card to open its panel. Hovering or selecting a card lights its links and fades the rest.
 - Every card has a link: `#n=<id>` opens it directly. `#f=<facet>` picks the coloring.
+- The top-right switch jumps between the internal and client views. They are separate files (`<map>.html` and `<map>.client.html`), and only the internal one links to the other.
+- Put your client's logo in the top bar with `theme.logo` in `map.md`. Without it, the map shows node-canvas's own mark.
 
 ## Format
 

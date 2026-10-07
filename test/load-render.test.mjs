@@ -83,3 +83,36 @@ test('note text cannot close the data script early', async () => {
   const dataBlock = html.split('id="map-data">')[1].split('</script>')[0]
   assert.ok(dataBlock.includes('<\\/script>'))
 })
+
+test('theme.logo is inlined and the Erre mark is gone', async () => {
+  const dir = await makeMap({
+    'map.md': MAP.replace('rows: [r]', 'rows: [r]\ntheme:\n  logo: brand.svg\n  accent: "#1f62d6"'),
+    'brand.svg': '<svg viewBox="0 0 10 10"><title>ACME</title></svg>',
+    'x.md': '---\ncolumn: a\nrow: r\n---\n',
+  })
+  const graph = await loadMap(dir)
+  assert.deepEqual(graph.problems, [])
+  const html = await renderHtml(graph, 'client')
+  assert.ok(html.includes('<title>ACME</title>'))
+  assert.ok(!html.includes('M18.0787'))
+  const data = JSON.parse(html.split('id="map-data">')[1].split('</script>')[0])
+  assert.equal(data.map.theme.logoSvg, undefined)
+  assert.equal(data.map.theme.accent, '#1f62d6')
+})
+
+test('a missing logo file is an error', async () => {
+  const dir = await makeMap({
+    'map.md': MAP.replace('rows: [r]', 'rows: [r]\ntheme:\n  logo: nope.svg'),
+  })
+  const { problems } = await loadMap(dir)
+  assert.match(problems[0].message, /theme.logo "nope.svg" not found/)
+})
+
+test('only the internal build links to the other view', async () => {
+  const dir = await makeMap({ 'map.md': MAP, 'x.md': '---\ncolumn: a\nrow: r\n---\n' })
+  const graph = await loadMap(dir)
+  const read = (html) => JSON.parse(html.split('id="map-data">')[1].split('</script>')[0]).map.views
+  const internal = await renderHtml(graph, 'internal', { views: { client: 'x.client.html' } })
+  assert.equal(read(internal).client, 'x.client.html')
+  assert.deepEqual(read(await renderHtml(graph, 'client')), {})
+})

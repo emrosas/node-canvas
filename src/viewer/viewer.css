@@ -3,6 +3,7 @@
 :root {
   --accent: #e85102;
   --accent-soft: #ff9134;
+  --attention: #e85102;
   --ink: #1d1c1b;
   --ink-2: #474747;
   --ink-3: #5c5c5c;
@@ -90,10 +91,21 @@ button {
 }
 
 .brand-mark {
-  width: 28px;
-  height: 28px;
+  height: 32px;
+  width: auto;
   flex: none;
-  filter: drop-shadow(0 2px 3px #f97d1e40);
+  display: inline-flex;
+  color: var(--logo-color, var(--ink));
+}
+
+.brand-mark svg {
+  height: 100%;
+  width: auto;
+}
+
+.brand-mark.is-default {
+  width: 28px;
+  filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--accent) 25%, transparent));
 }
 
 .brand-text {
@@ -237,8 +249,8 @@ kbd {
 }
 
 .chip-dot.attention {
-  background: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+  background: var(--attention);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--attention) 20%, transparent);
 }
 
 .audience {
@@ -258,6 +270,39 @@ kbd {
   border-color: color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
+.views {
+  display: flex;
+  padding: 3px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.views[hidden] {
+  display: none;
+}
+
+.views > * {
+  padding: 5px 9px;
+  border-radius: 6px;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+
+.views [aria-current] {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.views a:hover {
+  color: var(--accent);
+}
+
 @media (width < 1100px) {
   .brand-sub,
   [data-labels-toggle],
@@ -271,7 +316,8 @@ kbd {
 
 @media (width < 760px) {
   .tools .chip,
-  .audience {
+  .audience,
+  .views {
     display: none;
   }
 }
@@ -496,7 +542,7 @@ body.show-labels .edge-label:not(.dim) {
 }
 
 .tag.attention {
-  --tag-color: var(--accent);
+  --tag-color: var(--attention);
 }
 
 .tag.attention::before {
@@ -889,8 +935,8 @@ body.panel-open .zoom {
   border-radius: 10px;
   padding: 10px 12px;
   margin: 0 0 14px;
-  background: color-mix(in srgb, var(--accent) 7%, #fff);
-  border: 0.5px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--attention) 7%, #fff);
+  border: 0.5px solid color-mix(in srgb, var(--attention) 35%, transparent);
 }
 
 .attention-box p {
@@ -898,7 +944,7 @@ body.panel-open .zoom {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--accent);
+  color: var(--attention);
   margin: 0 0 4px;
 }
 

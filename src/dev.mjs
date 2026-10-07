@@ -39,7 +39,8 @@ export async function serve(dir, port) {
         res.end(errors.map((p) => `${p.file}  ${p.message}`).join('\n'))
         return
       }
-      const html = await renderHtml(graph, audience, { dev: true })
+      const views = { internal: '/', client: '/client' }
+      const html = await renderHtml(graph, audience, { dev: true, views })
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
       res.end(html)
     } catch (error) {

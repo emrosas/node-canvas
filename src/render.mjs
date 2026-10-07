@@ -90,8 +90,25 @@ export function forAudience(graph, audience) {
   }
 }
 
-export async function renderHtml(graph, audience, { dev = false } = {}) {
+// node-canvas's own mark: two notes and the link between them.
+const DEFAULT_LOGO = `<svg class="brand-mark is-default" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--accent)"/><path d="M10 21.5C15.5 21.5 16.5 10.5 22 10.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="10" cy="21.5" r="3.2" fill="#fff"/><circle cx="22" cy="10.5" r="3.2" fill="#fff"/></svg>`
+
+function logoMarkup(theme) {
+  if (theme?.logoSvg) return `<span class="brand-mark">${theme.logoSvg}</span>`
+  if (theme?.logoSrc) return `<img class="brand-mark" src="${theme.logoSrc}" alt="" />`
+  return DEFAULT_LOGO
+}
+
+/**
+ * `views` maps an audience to the URL of its build, so each file can link to
+ * the other. Only pass the client link to the internal build: a client file
+ * must never point at the internal one.
+ */
+export async function renderHtml(graph, audience, { dev = false, views = {} } = {}) {
   const data = forAudience(graph, audience)
+  data.map.views = views
+  const { logoSvg, logoSrc, ...theme } = data.map.theme ?? {}
+  data.map.theme = theme
   const [template, css, js] = await Promise.all([
     readFile(viewerDir + 'template.html', 'utf8'),
     readFile(viewerDir + 'viewer.css', 'utf8'),
@@ -107,6 +124,7 @@ export async function renderHtml(graph, audience, { dev = false } = {}) {
     : data.map.title
   return template
     .replace('{{title}}', () => escapeHtml(title))
+    .replace('{{logo}}', () => logoMarkup(graph.map.theme))
     .replace('{{css}}', () => css)
     .replace('{{data}}', () => json)
     .replace('{{js}}', () => js)

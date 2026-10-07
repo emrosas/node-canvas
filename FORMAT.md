@@ -51,8 +51,12 @@ edgeKinds:                         # optional; these merge over the defaults
     color: blue
     show: focus                    # always (default) | focus: only when a linked card is hovered or selected
 
-theme:
-  accent: "#e85102"                # optional brand color
+theme:                             # all optional
+  logo: logo.svg                   # file next to map.md: .svg, .png, .jpg or .webp
+  accent: "#e85102"                # brand color: selection, column numbers, links
+  ink: "#1d1c1b"                   # text color
+  paper: "#fef9f6"                 # canvas background
+  logoColor: "#102343"             # fills an SVG logo drawn with currentColor
 ---
 ```
 
@@ -110,6 +114,8 @@ Renders as a red box. Use it when two sources disagree.
 Any `:::name` block becomes a box with the class `callout-name`. Only `internal` is removed from the client build.
 
 ## Audiences
+
+The two views are two files, not a toggle, because anything inside a file can be read with view-source (see `docs/adr/0004`). The internal file links to the client file from the top bar; the client file never links back.
 
 `node-canvas build` writes two files:
 

@@ -40,8 +40,9 @@
   const color = (name) =>
     name?.startsWith('#') ? name : `var(--c-${name ?? 'gray'})`
 
-  if (map.theme?.accent) {
-    document.documentElement.style.setProperty('--accent', map.theme.accent)
+  const themeVars = { accent: '--accent', ink: '--ink', paper: '--paper', logoColor: '--logo-color' }
+  for (const [key, cssVar] of Object.entries(themeVars)) {
+    if (map.theme?.[key]) document.documentElement.style.setProperty(cssVar, map.theme[key])
   }
 
   const viewport = $('[data-viewport]')
@@ -84,6 +85,19 @@
   const audienceEl = $('[data-audience]')
   audienceEl.textContent = `${map.audienceLabel} view`
   audienceEl.dataset.kind = map.audience
+
+  // Link between the internal and client builds when the build provided both.
+  const viewsEl = $('[data-views]')
+  const otherViews = Object.entries(map.views ?? {}).filter(([id]) => id !== map.audience)
+  if (otherViews.length) {
+    audienceEl.hidden = true
+    viewsEl.hidden = false
+    const labels = map.audiences ?? {}
+    viewsEl.append(
+      el('span', { 'aria-current': 'page' }, labels[map.audience] ?? map.audience),
+      ...otherViews.map(([id, href]) => el('a', { href, title: `Open the ${labels[id] ?? id} view` }, labels[id] ?? id)),
+    )
+  }
 
   const facetsEl = $('[data-facets]')
   if (map.facets.length < 2) facetsEl.hidden = true

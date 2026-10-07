@@ -1,12 +1,18 @@
 // Reads a map folder into one resolved graph. The folder is the source of
 // truth: `map.md` holds the map's settings, every other `.md` file is a note.
 import { readFile, readdir } from 'node:fs/promises'
-import { basename, join, relative } from 'node:path'
+import { basename, extname, join, relative } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/
 const SKIP_FILES = new Set(['README.md', 'AGENTS.md', 'CLAUDE.md'])
 const SKIP_DIRS = new Set(['node_modules', 'dist', '.git'])
+const IMAGE_TYPES = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+}
 
 export const DEFAULT_EDGE_KINDS = {
   flow: { label: 'Moves to', style: 'solid', color: 'ink' },
@@ -98,6 +104,31 @@ export async function loadMap(dir) {
     body: mapBody,
   }
   map.defaultFacet ??= map.facets[0]?.id
+
+  if (map.theme.logo) {
+    const file = String(map.theme.logo)
+    try {
+      const bytes = await readFile(join(dir, file))
+      const ext = extname(file).toLowerCase()
+      if (ext === '.svg') {
+        map.theme.logoSvg = bytes.toString('utf8')
+      } else if (IMAGE_TYPES[ext]) {
+        map.theme.logoSrc = `data:${IMAGE_TYPES[ext]};base64,${bytes.toString('base64')}`
+      } else {
+        problems.push({
+          level: 'error',
+          file: 'map.md',
+          message: `theme.logo "${file}" must be .svg, .png, .jpg or .webp`,
+        })
+      }
+    } catch {
+      problems.push({
+        level: 'error',
+        file: 'map.md',
+        message: `theme.logo "${file}" not found next to map.md`,
+      })
+    }
+  }
 
   const columnIds = new Set(map.columns.map((c) => c.id))
   const rowIds = new Set(map.rows.map((r) => r.id))
