@@ -1,5 +1,6 @@
 # Agent notes
 
+- Read `docs/adr/` before changing how maps are built, shipped or installed. Those decisions are deliberate.
 - To write or edit a map, read `FORMAT.md` first. Edit the Markdown notes, never the built HTML.
 - Run `node bin/node-canvas.mjs check <map-dir>` after every change and fix every error before building.
 - The viewer (`src/viewer/`) must stay dependency-free plain JavaScript and CSS. It is inlined into every built map.

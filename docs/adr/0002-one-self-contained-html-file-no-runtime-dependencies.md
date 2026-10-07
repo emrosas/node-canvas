@@ -1,0 +1,3 @@
+# One self-contained HTML file with no runtime dependencies
+
+`build` inlines the viewer's CSS, JavaScript and the map data into a single file, and the viewer is plain JavaScript with no framework and no npm packages. The file has to open from an email attachment or a `file://` path, with no server, and still work years later when nobody remembers how it was built. A React Flow or Svelte Flow viewer was the obvious alternative and would have made layout easier, but it means a bundler, a dependency tree to keep current, and a bigger file. The cost: pan, zoom, layout and link routing are hand-written in `src/viewer/viewer.js`. Only the fonts load from the network, and they fall back to system fonts.

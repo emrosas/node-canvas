@@ -86,6 +86,7 @@ src/viewer/            the canvas itself: template, CSS and plain JavaScript, in
 src/index.mjs          programmatic API
 examples/              small maps that show the format (not installed)
 test/                  node --test (not installed)
+docs/adr/              why it is built this way
 ```
 
 The viewer has no framework and no dependencies, so the HTML stays small and keeps working for years. Build-time dependencies are `yaml` and `marked`.
