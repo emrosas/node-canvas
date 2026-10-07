@@ -116,3 +116,32 @@ test('only the internal build links to the other view', async () => {
   assert.equal(read(internal).client, 'x.client.html')
   assert.deepEqual(read(await renderHtml(graph, 'client')), {})
 })
+
+test('a link between notes that share no view is an error', async () => {
+  const dir = await makeMap({
+    'map.md': MAP,
+    'pitch.md': '---\ncolumn: a\nrow: r\naudience: client\nlinks: [webhook]\n---\n',
+    'webhook.md': '---\ncolumn: b\nrow: r\naudience: internal\n---\n',
+    'typo.md': '---\ncolumn: b\nrow: r\naudience: clients\n---\n',
+  })
+  const messages = (await loadMap(dir)).problems.map((p) => `${p.level}: ${p.message}`).join('\n')
+  assert.match(messages, /error: links\[0\] joins audience client to "webhook" \(audience internal\), so no view shows it/)
+  assert.match(messages, /error: audience: "clients" is not one of all, internal, client/)
+})
+
+test('the client view never shows an internal note id from a note reference', async () => {
+  const dir = await makeMap({
+    'map.md': MAP,
+    'page.md': '---\ncolumn: a\nrow: r\n---\nSee [[crm-webhook]] and [[crm-webhook|the CRM]].\n\n:::internal\nAlso [[crm-webhook]].\n:::\n',
+    'crm-webhook.md': '---\ntitle: Webhook\ncolumn: b\nrow: r\naudience: internal\n---\n',
+  })
+  const graph = await loadMap(dir)
+  const warnings = graph.problems.filter((p) => /is an internal note/.test(p.message))
+  assert.equal(warnings.length, 1)
+  const client = forAudience(graph, 'client').nodes[0]
+  assert.ok(!client.html.includes('crm-webhook'))
+  assert.ok(!client.text.includes('crm-webhook'))
+  assert.match(client.html, /the CRM/)
+  const internal = forAudience(graph, 'internal').nodes.find((n) => n.id === 'page')
+  assert.match(internal.html, /data-node="crm-webhook">Webhook</)
+})

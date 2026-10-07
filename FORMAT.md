@@ -96,10 +96,10 @@ audience: all                # all (default) | internal | client
 
 The body is Markdown and shows in the slide-over panel.
 
-Link to another note with [[job]] or [[job|custom text]].
+Refer to another note with [[job]] or [[job|display text]]. A reference jumps to that note but draws no line. Use `links` for lines.
 
 :::internal
-Only in the internal build. Use this for code paths, people's names, anything the client should not see.
+Only in the internal view. Use this for code paths, people's names, anything the client should not see.
 :::
 
 :::question
@@ -111,7 +111,7 @@ Renders as a red box. Use it when two sources disagree.
 :::
 ```
 
-Any `:::name` block becomes a box with the class `callout-name`. Only `internal` is removed from the client build.
+Any `:::name` block becomes a box with the class `callout-name`. Only `internal` is removed from the client view.
 
 ## Audiences
 
@@ -124,9 +124,14 @@ The two views are two files, not a toggle, because anything inside a file can be
 
 Mark a note `audience: client` to show it only in the client view.
 
+A link only shows when both of its notes are in the same view, so `check` stops on a link no view can show, such as one from a client-only note to an internal note.
+
+A `[[note]]` reference to a note a view leaves out shows there as plain text. In the client view that is only the display text, never the note's id, so write `[[crm-webhook|the CRM]]` or keep the reference inside a `:::internal` block. `check` warns about references without display text.
+
 ## Writing notes that work for both readers
 
 - One note, one thing. If a card needs two status values in one facet, split it.
+- If one thing shows up in several places, like a section repeated on two pages, give each place its own note with its own facet values and link each one to a shared note for the thing itself.
 - Put the decision you need in `attention`, phrased so the client can answer it. Explain it in a `:::question` block in the body.
 - Keep `summary` under about 70 characters. It is what people read when zoomed out.
 - Cite where a fact came from in `sources`. People trust a map they can check.

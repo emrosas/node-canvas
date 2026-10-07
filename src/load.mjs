@@ -3,10 +3,17 @@
 import { readFile, readdir } from 'node:fs/promises'
 import { basename, extname, join, relative } from 'node:path'
 import { parse as parseYaml } from 'yaml'
+import { applyCallouts } from './render.mjs'
 
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/
 const SKIP_FILES = new Set(['README.md', 'AGENTS.md', 'CLAUDE.md'])
 const SKIP_DIRS = new Set(['node_modules', 'dist', '.git'])
+const NOTE_REF = /\[\[([^\]|]+)(?:\|([^\]]*))?\]\]/g
+const AUDIENCES = ['all', 'internal', 'client']
+const VIEWS = ['internal', 'client']
+
+// A note limited to one audience only appears in that audience's view.
+const inView = (audience, view) => audience === 'all' || audience === view
 const IMAGE_TYPES = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -190,6 +197,15 @@ export async function loadMap(dir) {
       })
     }
 
+    const audience = String(data.audience ?? 'all')
+    if (!AUDIENCES.includes(audience)) {
+      problems.push({
+        level: 'error',
+        file,
+        message: `audience: "${audience}" is not one of ${AUDIENCES.join(', ')}`,
+      })
+    }
+
     nodes.push({
       id,
       file,
@@ -201,7 +217,7 @@ export async function loadMap(dir) {
       order: data.order ?? 0,
       x: data.x,
       y: data.y,
-      audience: data.audience ?? 'all',
+      audience,
       facets,
       attention: asList(data.attention).map(String),
       sources: asList(data.sources).map(String),
@@ -220,11 +236,12 @@ export async function loadMap(dir) {
     }
   }
 
-  const nodeIds = new Set(nodes.map((n) => n.id))
+  const nodeById = new Map(nodes.map((n) => [n.id, n]))
   const edges = []
   for (const node of nodes) {
     node.links.forEach((link, i) => {
-      if (!link.to || !nodeIds.has(String(link.to))) {
+      const target = nodeById.get(String(link.to))
+      if (!link.to || !target) {
         problems.push({
           level: 'error',
           file: node.file,
@@ -241,6 +258,14 @@ export async function loadMap(dir) {
         })
         return
       }
+      if (!VIEWS.some((v) => inView(node.audience, v) && inView(target.audience, v))) {
+        problems.push({
+          level: 'error',
+          file: node.file,
+          message: `links[${i}] joins audience ${node.audience} to "${link.to}" (audience ${target.audience}), so no view shows it`,
+        })
+        return
+      }
       edges.push({
         id: `${node.id}->${link.to}#${i}`,
         from: node.id,
@@ -253,13 +278,32 @@ export async function loadMap(dir) {
   }
 
   for (const node of nodes) {
-    for (const match of node.body.matchAll(/\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g)) {
-      if (!nodeIds.has(match[1].trim())) {
+    for (const match of node.body.matchAll(NOTE_REF)) {
+      if (!nodeById.has(match[1].trim())) {
         problems.push({
           level: 'warning',
           file: node.file,
           message: `[[${match[1]}]] does not match any note id`,
         })
+      }
+    }
+    // A reference to a note that a view leaves out renders there as plain
+    // text, so the client view never shows an internal note's id.
+    for (const view of VIEWS) {
+      if (!inView(node.audience, view)) continue
+      for (const match of applyCallouts(node.body, view).matchAll(NOTE_REF)) {
+        const target = nodeById.get(match[1].trim())
+        const hasText = Boolean(match[2]?.trim())
+        if (target && !inView(target.audience, view) && !(view === 'client' && hasText)) {
+          problems.push({
+            level: 'warning',
+            file: node.file,
+            message:
+              view === 'client'
+                ? `[[${match[1]}]] is an internal note. Give it display text ([[${match[1]}|text]]) for the client view, or move it into an :::internal block`
+                : `[[${match[1]}]] is a client-only note, so the internal view shows it as plain text`,
+          })
+        }
       }
     }
   }

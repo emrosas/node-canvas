@@ -4,7 +4,7 @@ A map tool. Agents read and write a folder of Markdown notes, and people read th
 
 ## Language
 
-### Maps and builds
+### Maps and views
 
 **Map**:
 A folder of notes plus its settings, drawn as one canvas.
@@ -14,13 +14,13 @@ _Avoid_: diagram, board, sitemap
 The pannable, zoomable surface a map's cards and links are drawn on.
 _Avoid_: board, whiteboard
 
-**Build**:
-One self-contained HTML file made from a map for one audience. Every map has an internal build and a client build.
-_Avoid_: view, page, export
+**View**:
+What one audience sees of a map: the internal view or the client view. Built as one self-contained HTML file, or served live while editing.
+_Avoid_: build, version, page
 
 **Export**:
 A one-way copy of a map in another format, such as JSON Canvas. Never edited and never read back.
-_Avoid_: build, source
+_Avoid_: view, source
 
 ### Notes and cards
 
@@ -31,6 +31,14 @@ _Avoid_: node, page, file
 **Card**:
 How a note appears on the canvas.
 _Avoid_: node, box, tile
+
+**Shared note**:
+A note for one thing that shows up in several places, such as a repeated website section. Each place gets its own instance.
+_Avoid_: component, master, symbol
+
+**Instance**:
+A note for one appearance of a shared note, linked to it and holding its own facet values.
+_Avoid_: copy, duplicate, placement
 
 **Note kind**:
 A free-text label naming what a note describes, such as Record or Section.
@@ -45,7 +53,7 @@ A fenced block in a note body that shows as a styled box, such as a question or 
 _Avoid_: admonition, box
 
 **Internal block**:
-A callout that only appears in the internal build.
+A callout that only appears in the internal view.
 _Avoid_: private note, hidden block
 
 **Note reference**:
@@ -106,13 +114,13 @@ The organization a map is made for.
 _Avoid_: customer, account
 
 **Audience**:
-Who a build is for: internal or client. A note can be limited to one audience.
+Who a view is for: internal or client. A note can be limited to one audience.
 _Avoid_: visibility, mode
 
-**Internal build**:
-The build with every note, internal block and file path, for the team making the map.
-_Avoid_: internal view, full build
+**Internal view**:
+The view with every note, internal block and file path, for the team making the map.
+_Avoid_: internal build, full view
 
-**Client build**:
-The build with internal notes, internal blocks and file paths removed, safe to send to the client.
-_Avoid_: client view, public build
+**Client view**:
+The view with internal notes, internal blocks and file paths removed, safe to send to the client.
+_Avoid_: client build, public view

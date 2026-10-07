@@ -46,20 +46,34 @@ export function applyCallouts(markdown, audience) {
   return out.join('\n')
 }
 
-export function linkNotes(markdown, titles) {
-  return markdown.replace(
-    /\[\[([^\]|]+)(?:\|([^\]]*))?\]\]/g,
-    (_, id, text) => {
-      const key = id.trim()
-      const label = text?.trim() || titles.get(key) || key
-      return `<a class="note-link" href="#n=${encodeURIComponent(key)}" data-node="${escapeHtml(key)}">${escapeHtml(label)}</a>`
-    },
+/**
+ * Calls `format(id, label)` for every `[[id]]` and `[[id|text]]`. A note
+ * missing from `titles` is not in this view, so `id` is null and the client
+ * view gets only the display text, never the missing note's id.
+ */
+function replaceNoteRefs(markdown, titles, audience, format) {
+  return markdown.replace(/\[\[([^\]|]+)(?:\|([^\]]*))?\]\]/g, (_, id, text) => {
+    const key = id.trim()
+    const visible = titles.has(key)
+    const label =
+      text?.trim() || titles.get(key) || (audience === 'client' ? '' : key)
+    return format(visible ? key : null, label)
+  })
+}
+
+export function linkNotes(markdown, titles, audience) {
+  return replaceNoteRefs(markdown, titles, audience, (key, label) =>
+    key
+      ? `<a class="note-link" href="#n=${encodeURIComponent(key)}" data-node="${escapeHtml(key)}">${escapeHtml(label)}</a>`
+      : escapeHtml(label),
   )
 }
 
 export function renderMarkdown(markdown, { audience, titles }) {
   const marked = new Marked({ gfm: true })
-  return marked.parse(linkNotes(applyCallouts(markdown, audience), titles))
+  return marked.parse(
+    linkNotes(applyCallouts(markdown, audience), titles, audience),
+  )
 }
 
 /** Strip a graph down to what one audience may see. */
@@ -81,7 +95,12 @@ export function forAudience(graph, audience) {
       ...node,
       file: audience === 'client' ? undefined : node.file,
       html: renderMarkdown(body, { audience, titles }),
-      text: applyCallouts(body, audience)
+      text: replaceNoteRefs(
+        applyCallouts(body, audience),
+        titles,
+        audience,
+        (_, label) => label,
+      )
         .replace(/<[^>]+>|[#*_`>\[\]|:-]/g, ' ')
         .replace(/\s+/g, ' ')
         .trim(),
