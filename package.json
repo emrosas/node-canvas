@@ -1,0 +1,38 @@
+{
+  "name": "node-canvas",
+  "version": "0.1.0",
+  "description": "Folders of Markdown notes rendered as a pannable canvas map. Agents read the notes, people read the canvas.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Erick Mireles (https://github.com/emrosas)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emrosas/node-canvas.git"
+  },
+  "bin": {
+    "node-canvas": "./bin/node-canvas.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin",
+    "src",
+    "FORMAT.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "node --test test/",
+    "example": "node bin/node-canvas.mjs dev examples/website-sitemap",
+    "check:example": "node bin/node-canvas.mjs check examples/website-sitemap"
+  },
+  "dependencies": {
+    "marked": "^18.1.0",
+    "yaml": "^2.9.1"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.33.4"
+}
